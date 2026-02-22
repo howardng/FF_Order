@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>訂購系統</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #f5f5f5;
+    }
+    
+    /* 載入中動畫 */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #e0e0e0;
+      border-top: 6px solid #4CAF50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 1.8rem;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* 錯誤訊息 */
+    .error-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 90%;
+      display: none;
+      z-index: 2000;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .error-icon {
+      font-size: 5rem;
+      margin-bottom: 15px;
+    }
+    
+    .error-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #d32f2f;
+      margin-bottom: 10px;
+    }
+    
+    .error-text {
+      font-size: 1.8rem;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    
+    .retry-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.8rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .retry-btn:hover {
+      background: #45a049;
+    }
+    
+    /* iframe 容器 */
+    .iframe-container {
+      width: 100%;
+      height: 100vh;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .iframe-container.show {
+      opacity: 1;
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    
+    /* 手機底部安全區調整 */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .iframe-container {
+        height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+    
+    /* 小螢幕微調 */
+    @media (max-width: 600px) {
+      .loading-text {
+        font-size: 1.6rem;
+      }
+      .error-title {
+        font-size: 2rem;
+      }
+      .error-text {
+        font-size: 1.6rem;
+      }
+      .retry-btn {
+        font-size: 1.6rem;
+        padding: 12px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 載入中動畫 -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">載入訂購系統中...</div>
+  </div>
+  
+  <!-- 錯誤訊息 -->
+  <div class="error-message" id="errorMessage">
+    <div class="error-icon">⚠️</div>
+    <div class="error-title">載入失敗</div>
+    <div class="error-text" id="errorText">無法連接到訂購系統</div>
+    <button class="retry-btn" id="retryBtn">重新整理</button>
+  </div>
+  
+  <!-- iframe 容器 -->
+  <div class="iframe-container" id="iframeContainer">
+    <iframe 
+      id="orderSystemIframe"
+      src="https://script.google.com/macros/s/AKfycbweQ4Vbs3AnSfAi-CmUFo0lBXeXM_FOHbz1uNdmAqo/dev" 
+      title="訂購系統"
+      allow="microphone; camera; geolocation"
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation"
+    ></iframe>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('orderSystemIframe');
+    const loading = document.getElementById('loading');
+    const iframeContainer = document.getElementById('iframeContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const retryBtn = document.getElementById('retryBtn');
+    
+    // iframe 載入完成事件
+    iframe.onload = function() {
+      // 隱藏載入中動畫
+      loading.classList.add('hidden');
+      // 顯示 iframe
+      iframeContainer.classList.add('show');
+      
+      // 延遲後移除載入中元素
+      setTimeout(() => {
+        loading.style.display = 'none';
+      }, 300);
+    };
+    
+    // iframe 載入錯誤事件
+    iframe.onerror = function() {
+      showError('無法連接到訂購系統，請檢查網路連線');
+    };
+    
+    // 設定逾時處理（如果 10 秒後仍未載入完成）
+    const timeoutId = setTimeout(function() {
+      if (!iframeContainer.classList.contains('show')) {
+        showError('載入逾時，請檢查網路連線後重試');
+      }
+    }, 10000);
+    
+    // 顯示錯誤訊息
+    function showError(message) {
+      clearTimeout(timeoutId);
+      loading.classList.add('hidden');
+      errorText.textContent = message;
+      errorMessage.classList.add('show');
+    }
+    
+    // 重新整理按鈕
+    retryBtn.addEventListener('click', function() {
+      errorMessage.classList.remove('show');
+      loading.classList.remove('hidden');
+      loading.style.display = 'flex';
+      iframeContainer.classList.remove('show');
+      
+      // 重新載入 iframe
+      iframe.src = iframe.src; // 重新載入相同網址
+    });
+    
+    // 監聽來自 iframe 的訊息（可選）
+    window.addEventListener('message', function(event) {
+      console.log('Received message:', event.data);
+    });
+    
+    // 處理手機返回鍵等
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        // 如果頁面從快取恢復，重新載入 iframe
+        iframe.src = iframe.src;
+      }
+    });
+  </script>
+</body>
+</html>
