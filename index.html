@@ -5,21 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>訂購系統</title>
   <style>
-    /* 徹底重置所有可能影響 iframe 尺寸的樣式 */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     html, body {
       width: 100%;
       height: 100%;
       background-color: #f5f5f5;
-      overflow: hidden;   /* 禁止滾動條，確保視口寬度精確 */
+      overflow: hidden;
     }
-
-    /* 載入中動畫 */
     .loading {
       position: fixed;
       top: 0; left: 0;
@@ -47,8 +43,6 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    /* iframe 容器：絕對定位，完全填滿 */
     .iframe-container {
       position: absolute;
       top: 0; left: 0;
@@ -60,17 +54,13 @@
     .iframe-container.show {
       opacity: 1;
     }
-
     iframe {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
-      /* 確保沒有任何縮放或變形 */
       transform: none;
     }
-
-    /* 錯誤提示 */
     .error-message {
       position: fixed;
       top: 50%; left: 50%;
@@ -102,17 +92,13 @@
     <div class="spinner"></div>
     <div>載入訂購系統中...</div>
   </div>
-
   <div class="error-message" id="errorMessage">
     <div style="font-size:36px;">⚠️</div>
     <div style="font-size:18px; font-weight:700; color:#d32f2f;">載入失敗</div>
     <div id="errorText" style="margin-top:10px; color:#444;">無法連接到訂購系統</div>
     <button class="retry-btn" id="retryBtn">重新整理</button>
   </div>
-
-  <div class="iframe-container" id="iframeContainer">
-    <!-- iframe 的 src 將由 JavaScript 動態加上 force 參數 -->
-  </div>
+  <div class="iframe-container" id="iframeContainer"></div>
 
   <script>
     const loading     = document.getElementById("loading");
@@ -121,26 +107,22 @@
     const errorText   = document.getElementById("errorText");
     const retryBtn    = document.getElementById("retryBtn");
 
-    // 建立 iframe 元素
     const iframe = document.createElement("iframe");
     iframe.id = "orderSystemIframe";
     iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads");
     iframe.setAttribute("loading", "lazy");
 
-    // 判斷父頁面是否為行動裝置
     function isParentMobile() {
       return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
-    // 組合 iframe 的 src，加上 force 參數
+    // 請將下方 baseSrc 改為你新的 Apps Script 正式網址（/exec 結尾）
     const baseSrc = "https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec";
     const forceParam = isParentMobile() ? "?force=mobile" : "?force=desktop";
     iframe.src = baseSrc + forceParam;
 
-    // 將 iframe 加入容器
     container.appendChild(iframe);
 
-    // 載入事件
     iframe.onload = () => {
       loading.classList.add("hidden");
       container.classList.add("show");
@@ -151,7 +133,6 @@
       showError("無法載入訂購系統，請檢查網路連線");
     };
 
-    // 逾時處理
     const timeout = setTimeout(() => {
       if (!container.classList.contains("show")) {
         showError("載入逾時，請稍後再試");
@@ -170,7 +151,6 @@
       loading.style.display = "flex";
       loading.classList.remove("hidden");
       container.classList.remove("show");
-      // 重新載入 iframe（保持相同參數）
       iframe.src = baseSrc + forceParam;
     };
   </script>
