@@ -3,185 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>訂購系統 - 強制桌面版測試</title>
+  <title>訂購系統 (iframe 無 sandbox)</title>
   <style>
-    /* 徹底重置所有可能影響 iframe 尺寸的樣式 */
+    /* 極簡樣式，確保 iframe 完全填滿 */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     html, body {
       width: 100%;
       height: 100%;
       background-color: #f5f5f5;
       overflow: hidden;
     }
-
-    /* 頂部版本提示 (明顯標示) */
+    /* 頂部版本提示 (便於識別) */
     .version-badge {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: #2196F3;  /* 藍色區分 */
+      background: #4CAF50;
       color: white;
       text-align: center;
-      padding: 10px;
-      font-size: 20px;
+      padding: 8px;
+      font-size: 16px;
       font-weight: bold;
       z-index: 2000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-
-    /* 載入中動畫 */
-    .loading {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f5f5f5;
-      z-index: 1000;
-      transition: opacity 0.3s ease;
-    }
-    .loading.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e0e0e0;
-      border-top: 4px solid #4CAF50;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 12px;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* iframe 容器 */
-    .iframe-container {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .iframe-container.show {
-      opacity: 1;
-    }
-
     iframe {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
-      transform: none;
-    }
-
-    /* 錯誤提示 */
-    .error-message {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 28px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-      text-align: center;
-      display: none;
-      z-index: 2000;
-    }
-    .error-message.show {
-      display: block;
-    }
-    .retry-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <!-- 明確標示：強制桌面版模式 -->
-  <div class="version-badge">🧪 測試模式：強制桌面版樣式 (忽略手機判斷)</div>
-
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <div>載入訂購系統中...</div>
-  </div>
-
-  <div class="error-message" id="errorMessage">
-    <div style="font-size:36px;">⚠️</div>
-    <div style="font-size:18px; font-weight:700; color:#d32f2f;">載入失敗</div>
-    <div id="errorText" style="margin-top:10px; color:#444;">無法連接到訂購系統</div>
-    <button class="retry-btn" id="retryBtn">重新整理</button>
-  </div>
-
-  <div class="iframe-container" id="iframeContainer"></div>
-
-  <script>
-    const loading     = document.getElementById("loading");
-    const container   = document.getElementById("iframeContainer");
-    const errorBox    = document.getElementById("errorMessage");
-    const errorText   = document.getElementById("errorText");
-    const retryBtn    = document.getElementById("retryBtn");
-
-    // 建立 iframe 元素
-    const iframe = document.createElement("iframe");
-    iframe.id = "orderSystemIframe";
-    iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads");
-    iframe.setAttribute("loading", "lazy");
-
-    // 強制使用桌面版模式：直接傳送 ?force=desktop
-    const baseSrc = "https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec";
-    iframe.src = baseSrc + "?force=desktop";
-
-    // 將 iframe 加入容器
-    container.appendChild(iframe);
-
-    // 載入事件
-    iframe.onload = () => {
-      loading.classList.add("hidden");
-      container.classList.add("show");
-      setTimeout(() => loading.style.display = "none", 300);
-    };
-
-    iframe.onerror = () => {
-      showError("無法載入訂購系統，請檢查網路連線");
-    };
-
-    const timeout = setTimeout(() => {
-      if (!container.classList.contains("show")) {
-        showError("載入逾時，請稍後再試");
-      }
-    }, 15000);
-
-    function showError(msg) {
-      loading.classList.add("hidden");
-      errorText.textContent = msg;
-      errorBox.classList.add("show");
-      clearTimeout(timeout);
-    }
-
-    retryBtn.onclick = () => {
-      errorBox.classList.remove("show");
-      loading.style.display = "flex";
-      loading.classList.remove("hidden");
-      container.classList.remove("show");
-      // 重新載入，保持 force=desktop
-      iframe.src = baseSrc + "?force=desktop";
-    };
-  </script>
+  <div class="version-badge">iframe 無 sandbox (強制手機版)</div>
+  <iframe 
+    src="https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec?force=mobile"
+    loading="lazy"
+  ></iframe>
 </body>
 </html>
