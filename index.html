@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>訂購系統 v2.0</title>
+  <title>訂購系統</title>
   <style>
+    /* 徹底重置所有可能影響 iframe 尺寸的樣式 */
     * {
       margin: 0;
       padding: 0;
@@ -18,13 +19,28 @@
       overflow: hidden;
     }
 
-    /* 載入中動畫 (加入版本號) */
+    /* 頂部版本提示 (明顯標示) */
+    .version-badge {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #ff9800;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 2000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* 載入中動畫 */
     .loading {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       background: #f5f5f5;
@@ -42,17 +58,13 @@
       border-top: 4px solid #4CAF50;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-bottom: 12px;
+      margin-right: 12px;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    .loading-version {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #666;
-    }
 
+    /* iframe 容器 */
     .iframe-container {
       position: absolute;
       top: 0; left: 0;
@@ -73,6 +85,7 @@
       transform: none;
     }
 
+    /* 錯誤提示 */
     .error-message {
       position: fixed;
       top: 50%; left: 50%;
@@ -98,27 +111,32 @@
       cursor: pointer;
     }
 
-    /* 版本標籤 (點擊可隱藏) */
-    .version-tag {
+    /* 除錯面板（雙擊顯示） */
+    #debugPanel {
       position: fixed;
-      bottom: 5px;
-      right: 5px;
-      background: rgba(0,0,0,0.6);
-      color: #ff0;
-      padding: 4px 8px;
-      border-radius: 4px;
+      bottom: 10px; left: 10px;
+      background: rgba(0,0,0,0.8);
+      color: #0f0;
+      padding: 12px;
+      border-radius: 8px;
       font-size: 12px;
       z-index: 3000;
-      cursor: pointer;
-      user-select: none;
+      display: none;
+      pointer-events: none;
+      max-width: 90%;
+    }
+    body.debug #debugPanel {
+      display: block;
     }
   </style>
 </head>
 <body>
+  <!-- 明顯的版本標示，可隨時移除或修改 -->
+  <div class="version-badge">iframe v2.0 (雙重判斷 - UA/寬度)</div>
+
   <div class="loading" id="loading">
     <div class="spinner"></div>
     <div>載入訂購系統中...</div>
-    <div class="loading-version">iframe v2.0 (雙重判斷)</div>
   </div>
 
   <div class="error-message" id="errorMessage">
@@ -130,8 +148,8 @@
 
   <div class="iframe-container" id="iframeContainer"></div>
 
-  <!-- 版本標籤 -->
-  <div class="version-tag" id="versionTag" onclick="this.style.display='none'">iframe v2.0 (雙重判斷)</div>
+  <!-- 除錯面板 -->
+  <div id="debugPanel"></div>
 
   <script>
     const loading     = document.getElementById("loading");
@@ -139,6 +157,28 @@
     const errorBox    = document.getElementById("errorMessage");
     const errorText   = document.getElementById("errorText");
     const retryBtn    = document.getElementById("retryBtn");
+    const debugPanel  = document.getElementById("debugPanel");
+
+    // 輔助更新除錯資訊
+    function updateDebugInfo(forceParam) {
+      const ua = navigator.userAgent;
+      const width = window.innerWidth;
+      const isUaMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+      const isWidthMobile = width <= 768;
+      debugPanel.innerHTML = `
+        UA: ${ua.substring(0, 60)}...<br>
+        寬度: ${width}px<br>
+        UA 判斷: ${isUaMobile ? '手機' : '電腦'}<br>
+        寬度判斷: ${isWidthMobile ? '手機' : '電腦'}<br>
+        傳遞 force: ${forceParam}<br>
+        (雙擊關閉)
+      `;
+    }
+
+    // 雙擊 body 開啟/關閉除錯面板
+    document.body.addEventListener('dblclick', () => {
+      document.body.classList.toggle('debug');
+    });
 
     // 建立 iframe 元素
     const iframe = document.createElement("iframe");
@@ -157,6 +197,9 @@
     const baseSrc = "https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec";
     const forceParam = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
     iframe.src = baseSrc + forceParam;
+
+    // 更新除錯資訊
+    updateDebugInfo(forceParam);
 
     // 將 iframe 加入容器
     container.appendChild(iframe);
@@ -194,6 +237,7 @@
       // 重新載入 iframe（重新根據當前寬度判斷）
       const newForce = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
       iframe.src = baseSrc + newForce;
+      updateDebugInfo(newForce);
     };
 
     // 當視窗大小改變時，重新判斷並更新 iframe 的 src
@@ -203,6 +247,7 @@
         const newForce = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
         if (iframe.src !== baseSrc + newForce) {
           iframe.src = baseSrc + newForce;
+          updateDebugInfo(newForce);
         }
       }, 300);
     });
