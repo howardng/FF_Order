@@ -1,73 +1,743 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>訂購系統</title>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>訂購系統 - 表格輸入</title>
   <style>
+    /* 基礎樣式 (電腦版優先，手機版會用 .mobile 覆蓋) */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f5f5;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 0;
+      padding: 12px;
     }
-    #message {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .card {
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.15);
       width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow: hidden;
+    }
+    
+    /* 電腦版樣式 (預設) - 字體固定大小，間距緊湊 */
+    h2 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+      font-weight: 700;
+      color: #333;
+      flex-shrink: 0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    label {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      background-color: white;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    select:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+    }
+    .filter-section {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 10px;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      flex-shrink: 0;
+    }
+    .filter-item {
+      flex: 1;
+      min-width: 0;
+    }
+    .filter-item label {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .filter-item select {
+      padding: 6px;
+      font-size: 13px;
+      border-radius: 6px;
+      width: 100%;
+    }
+    #inputSection {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+    .table-container {
+      margin-top: 12px;
+      flex: 1 1 auto;
+      min-height: 200px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+      will-change: transform;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+      table-layout: auto;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+      padding: 8px 8px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.2;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    td {
+      padding: 8px 8px;
+      border-bottom: 2px solid #eee;
+      white-space: nowrap;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    th:last-child, td:last-child {
+      width: 80px;
+    }
+    th:nth-child(3), td:nth-child(3) {
+      min-width: 150px;
+    }
+    .qty-input {
+      width: 100%;
+      max-width: 70px;
+      padding: 3px 4px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .qty-input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .qty-input[type=number] {
+      -moz-appearance: textfield;
+    }
+    #submitBtn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 19px;
+      font-weight: 700;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 20px;
+      width: 100%;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+    #submitBtn:hover {
+      background: #45a049;
+    }
+    #submitBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .message {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    .message.error {
       background: #f8d7da;
       color: #721c24;
-      padding: 15px;
-      text-align: center;
+      border: 2px solid #f5c6cb;
+    }
+    .info-text {
+      color: #666;
+      font-style: italic;
+      margin: 6px 0;
       font-size: 16px;
-      border-bottom: 2px solid #f5c6cb;
-      z-index: 2000;
-      display: none;
+      flex-shrink: 0;
     }
-    #message.show {
-      display: block;
+    .result-section {
+      margin-top: 12px;
+      padding: 16px;
+      background: #f0f8ff;
+      border-radius: 12px;
+      border: 2px solid #4CAF50;
+      overflow-y: auto;
+      max-height: 100%;
     }
-    .iframe-container {
+    .result-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #4CAF50;
+      margin-bottom: 12px;
+    }
+    .result-table {
       width: 100%;
-      height: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+      margin-bottom: 12px;
     }
-    iframe {
-      width: 100%;
-      height: 100%;
+    .result-table th {
+      background: #4CAF50;
+      color: white;
+      padding: 8px;
+      text-align: left;
+    }
+    .result-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    .result-count {
+      font-size: 16px;
+      margin: 12px 0;
+      font-weight: 600;
+    }
+    .back-btn {
+      background: #4CAF50;
+      color: white;
       border: none;
-      display: block;
+      padding: 14px 24px;
+      font-size: 18px;
+      border-radius: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .back-btn:hover {
+      background: #45a049;
+    }
+    
+    /* 手機版樣式 - 當 body 有 mobile 類別時生效 (由裝置類型決定) */
+    body.mobile h2 {
+      font-size: 52px !important;
+      margin-bottom: 36px !important;
+      border-bottom-width: 8px !important;
+      padding-bottom: 18px !important;
+    }
+    body.mobile .form-group {
+      margin-bottom: 36px !important;
+    }
+    body.mobile label {
+      font-size: 40px !important;
+      margin-bottom: 16px !important;
+    }
+    body.mobile select {
+      padding: 24px !important;
+      font-size: 40px !important;
+      border-radius: 24px !important;
+    }
+    body.mobile .filter-section {
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 15px !important;
+      padding: 20px !important;
+    }
+    body.mobile .filter-item {
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+    body.mobile .filter-item label {
+      font-size: 30px !important;
+      margin-bottom: 8px !important;
+    }
+    body.mobile .filter-item select {
+      padding: 16px !important;
+      font-size: 30px !important;
+      border-radius: 16px !important;
+    }
+    body.mobile .table-container {
+      margin-top: 24px !important;
+      min-height: 200px !important;
+    }
+    body.mobile th {
+      padding: 16px 10px !important;
+      font-size: 36px !important;
+    }
+    body.mobile td {
+      padding: 16px 10px !important;
+      font-size: 34px !important;
+      white-space: normal !important;
+    }
+    body.mobile .qty-input {
+      max-width: 140px !important;
+      padding: 8px 6px !important;
+      font-size: 34px !important;
+    }
+    body.mobile #submitBtn {
+      padding: 28px 32px !important;
+      font-size: 42px !important;
+      border-radius: 28px !important;
+      margin-top: 36px !important;
+    }
+    body.mobile .message {
+      padding: 28px !important;
+      font-size: 36px !important;
+      margin-top: 36px !important;
+    }
+    body.mobile .info-text {
+      margin: 16px 0 !important;
+      font-size: 36px !important;
+    }
+    body.mobile .result-title {
+      font-size: 42px !important;
+      margin-bottom: 28px !important;
+    }
+    body.mobile .result-table {
+      font-size: 34px !important;
+    }
+    body.mobile .result-table th,
+    body.mobile .result-table td {
+      padding: 16px !important;
+    }
+    body.mobile .result-count {
+      font-size: 34px !important;
+      margin: 28px 0 !important;
+    }
+    body.mobile .back-btn {
+      padding: 24px 32px !important;
+      font-size: 36px !important;
+      border-radius: 28px !important;
+    }
+    
+    /* 通用 */
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
 <body>
-  <div id="message">
-    ⚠️ 如果頁面空白或要求授權，請關閉手機的「阻止跨站跟踪」功能（設定 > Safari/Chrome > 關閉「阻止跨站跟踪」），然後重新整理。
+  <div class="card">
+    <h2>訂購系統</h2>
+    
+    <div class="form-group">
+      <label for="customer">選擇客戶別名 (Customer Alias)</label>
+      <select id="customer" required>
+        <option value="">-- 請選擇客戶 --</option>
+      </select>
+    </div>
+
+    <div id="inputSection">
+      <div class="info-text">請在下方表格中輸入各貨品數量：</div>
+      
+      <div class="filter-section" id="filterSection">
+        <div class="filter-item">
+          <label for="filterCategory">篩選類別：</label>
+          <select id="filterCategory">
+            <option value="all">全部</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="filterType">篩選類型：</label>
+          <select id="filterType">
+            <option value="all">全部</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="filterProduct">篩選貨品：</label>
+          <select id="filterProduct">
+            <option value="all">全部</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container" id="tableContainer">
+        <!-- 表格由 JavaScript 動態產生 -->
+      </div>
+      <button type="button" id="submitBtn">提交訂單</button>
+    </div>
+
+    <div id="resultSection" class="result-section" style="display: none;">
+      <div class="result-title">📋 訂單提交成功</div>
+      <div id="resultContent"></div>
+      <button class="back-btn" id="backBtn">繼續訂購</button>
+    </div>
+
+    <div id="message" class="message"></div>
   </div>
-  <div class="iframe-container">
-    <iframe 
-      id="mainIframe"
-      src="https://script.google.com/macros/s/AKfycbyg12K6TODM20sLRfGpD7gp0m458ZxRmkv0eRR_meQa98IhZygmFyxmR6PxKKSL1BwC/exec?force=mobile"
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads"
-      loading="lazy"
-    ></iframe>
-  </div>
+
   <script>
-    // 檢測 iframe 是否可能被阻止（簡單定時器提示）
-    setTimeout(() => {
-      const iframe = document.getElementById('mainIframe');
-      // 嘗試檢查 iframe 內容是否為空白（受限於跨域，只能假設）
-      const msg = document.getElementById('message');
-      msg.classList.add('show');
-    }, 3000);
+    // 偵測是否為行動裝置 (手機/平板)
+    function isMobileDevice() {
+      // 常見行動裝置關鍵字：Mobi, Android, iPhone, iPad, iPod
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    // 根據裝置類型設定 mobile 類別
+    function setMobileClass() {
+      if (isMobileDevice()) {
+        document.body.classList.add('mobile');
+      } else {
+        document.body.classList.remove('mobile');
+      }
+    }
+
+    // 初始化執行一次
+    setMobileClass();
+
+    // 理論上裝置類型不會改變，但為了極少數情況（如瀏覽器模擬器），保留 resize 監聽（不頻繁執行）
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(setMobileClass, 150);
+    });
+
+    // 核心資料
+    let originalItems = [];
+    let quantities = {};
+
+    // DOM 元素
+    const customerSelect = document.getElementById('customer');
+    const filterCategory = document.getElementById('filterCategory');
+    const filterType = document.getElementById('filterType');
+    const filterProduct = document.getElementById('filterProduct');
+    const tableContainer = document.getElementById('tableContainer');
+    const inputSection = document.getElementById('inputSection');
+    const resultSection = document.getElementById('resultSection');
+    const messageDiv = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+    const backBtn = document.getElementById('backBtn');
+
+    // 渲染排程控制
+    let renderRaf = null;
+    function scheduleRender(items) {
+      if (renderRaf) cancelAnimationFrame(renderRaf);
+      renderRaf = requestAnimationFrame(() => {
+        renderTable(items);
+        renderRaf = null;
+      });
+    }
+
+    // 初始化客戶清單
+    google.script.run.withSuccessHandler(loadCustomers).getCustomers();
+
+    function loadCustomers(customers) {
+      customers.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c;
+        option.textContent = c;
+        customerSelect.appendChild(option);
+      });
+    }
+
+    // 客戶變更
+    customerSelect.addEventListener('change', function() {
+      const customer = this.value;
+      inputSection.style.display = 'flex';
+      resultSection.style.display = 'none';
+      messageDiv.innerHTML = '';
+
+      if (!customer) {
+        inputSection.style.display = 'none';
+        return;
+      }
+
+      quantities = {};
+      tableContainer.innerHTML = '<p style="padding: 30px; text-align: center; font-size: 2rem;">載入貨品資料中...</p>';
+
+      google.script.run
+        .withSuccessHandler(loadCatalog)
+        .withFailureHandler(showError)
+        .getCustomerCatalog(customer);
+    });
+
+    function loadCatalog(items) {
+      originalItems = items;
+      updateCategoryFilter(items);
+      resetTypeFilter();
+      resetProductFilter();
+      scheduleRender(items);
+    }
+
+    // 更新類別篩選器
+    function updateCategoryFilter(items) {
+      const categories = [...new Set(items.map(item => item.category))].sort();
+      filterCategory.innerHTML = '<option value="all">全部</option>';
+      categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        filterCategory.appendChild(option);
+      });
+    }
+
+    function updateTypeFilter() {
+      const selectedCategory = filterCategory.value;
+      let availableTypes;
+      if (selectedCategory === 'all') {
+        availableTypes = [...new Set(originalItems.map(item => item.type))].sort();
+      } else {
+        availableTypes = [...new Set(
+          originalItems.filter(item => item.category === selectedCategory).map(item => item.type)
+        )].sort();
+      }
+      filterType.innerHTML = '<option value="all">全部</option>';
+      availableTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        filterType.appendChild(option);
+      });
+    }
+
+    function updateProductFilter() {
+      const selectedCategory = filterCategory.value;
+      const selectedType = filterType.value;
+      let availableProducts = originalItems;
+      if (selectedCategory !== 'all') availableProducts = availableProducts.filter(item => item.category === selectedCategory);
+      if (selectedType !== 'all') availableProducts = availableProducts.filter(item => item.type === selectedType);
+      const products = [...new Set(availableProducts.map(item => item.product))].sort();
+      filterProduct.innerHTML = '<option value="all">全部</option>';
+      products.forEach(product => {
+        const option = document.createElement('option');
+        option.value = product;
+        option.textContent = product;
+        filterProduct.appendChild(option);
+      });
+    }
+
+    function resetTypeFilter() {
+      filterType.innerHTML = '<option value="all">全部</option>';
+    }
+
+    function resetProductFilter() {
+      filterProduct.innerHTML = '<option value="all">全部</option>';
+    }
+
+    // 篩選器變更事件
+    filterCategory.addEventListener('change', function() {
+      updateTypeFilter();
+      updateProductFilter();
+      applyFilters();
+    });
+
+    filterType.addEventListener('change', function() {
+      updateProductFilter();
+      applyFilters();
+    });
+
+    filterProduct.addEventListener('change', function() {
+      applyFilters();
+    });
+
+    function applyFilters() {
+      const categoryFilter = filterCategory.value;
+      const typeFilter = filterType.value;
+      const productFilter = filterProduct.value;
+      const filteredItems = originalItems.filter(item => {
+        if (categoryFilter !== 'all' && item.category !== categoryFilter) return false;
+        if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+        if (productFilter !== 'all' && item.product !== productFilter) return false;
+        return true;
+      });
+      scheduleRender(filteredItems);
+    }
+
+    function showError(error) {
+      messageDiv.innerHTML = `<span class="error">讀取資料失敗：${error.message}</span>`;
+      tableContainer.innerHTML = '';
+    }
+
+    // 渲染表格
+    function renderTable(items) {
+      if (!items || items.length === 0) {
+        tableContainer.innerHTML = '<p style="padding: 30px; text-align: center; font-size: 2rem;">沒有符合條件的貨品</p>';
+        return;
+      }
+
+      let html = '<table><thead><tr><th>類別</th><th>類型</th><th>貨品</th><th>數量</th></tr></thead><tbody>';
+      items.forEach(item => {
+        const key = `${item.category}|${item.type}|${item.product}`;
+        const savedQty = quantities.hasOwnProperty(key) ? quantities[key] : 0;
+        html += `<tr data-key="${escapeAttr(key)}">`;
+        html += `<td>${escapeHtml(item.category)}</td>`;
+        html += `<td>${escapeHtml(item.type)}</td>`;
+        html += `<td>${escapeHtml(item.product)}</td>`;
+        html += `<td><input type="number" min="0" value="${savedQty}" class="qty-input" step="1"></td>`;
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      tableContainer.innerHTML = html;
+      messageDiv.innerHTML = '';
+    }
+
+    // 事件代理
+    tableContainer.addEventListener('input', function(e) {
+      const target = e.target;
+      if (target.classList.contains('qty-input')) {
+        const row = target.closest('tr');
+        if (row && row.dataset.key) {
+          const key = row.dataset.key;
+          let val = parseInt(target.value, 10);
+          if (isNaN(val) || val < 0) val = 0;
+          if (window.qtyRaf) cancelAnimationFrame(window.qtyRaf);
+          window.qtyRaf = requestAnimationFrame(() => {
+            quantities[key] = val;
+          });
+        }
+      }
+    });
+
+    tableContainer.addEventListener('focus', function(e) {
+      if (e.target.classList.contains('qty-input')) {
+        e.target.value = '';
+      }
+    }, true);
+
+    tableContainer.addEventListener('blur', function(e) {
+      if (e.target.classList.contains('qty-input')) {
+        if (e.target.value === '') {
+          e.target.value = '0';
+          const row = e.target.closest('tr');
+          if (row && row.dataset.key) {
+            quantities[row.dataset.key] = 0;
+          }
+        }
+      }
+    }, true);
+
+    function escapeHtml(unsafe) {
+      return unsafe.replace(/[&<>"]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        if (m === '"') return '&quot;';
+        return m;
+      });
+    }
+
+    function escapeAttr(unsafe) {
+      return unsafe.replace(/[&"]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '"') return '&quot;';
+        return m;
+      });
+    }
+
+    // 提交訂單
+    submitBtn.addEventListener('click', function() {
+      const customer = customerSelect.value;
+      if (!customer) { alert('請先選擇客戶'); return; }
+
+      const orders = [];
+      for (const key in quantities) {
+        if (quantities.hasOwnProperty(key) && quantities[key] > 0) {
+          const parts = key.split('|');
+          if (parts.length === 3) {
+            orders.push({
+              customer: customer,
+              category: parts[0],
+              type: parts[1],
+              product: parts[2],
+              quantity: quantities[key]
+            });
+          }
+        }
+      }
+
+      if (orders.length === 0) { alert('至少填寫一項貨品的數量（大於 0）'); return; }
+
+      submitBtn.disabled = true;
+      google.script.run
+        .withSuccessHandler(function(count) {
+          showResult(orders, count);
+          submitBtn.disabled = false;
+        })
+        .withFailureHandler(function(error) {
+          messageDiv.innerHTML = `<span class="error">提交失敗：${error.message}</span>`;
+          submitBtn.disabled = false;
+        })
+        .saveOrders(orders);
+    });
+
+    function showResult(orders, count) {
+      inputSection.style.display = 'none';
+      resultSection.style.display = 'block';
+      messageDiv.innerHTML = '';
+
+      let html = '<table class="result-table"><thead><tr><th>類別</th><th>類型</th><th>貨品</th><th>數量</th></tr></thead><tbody>';
+      orders.forEach(order => {
+        html += `<tr><td>${escapeHtml(order.category)}</td><td>${escapeHtml(order.type)}</td><td>${escapeHtml(order.product)}</td><td>${order.quantity}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      html += `<div class="result-count">✅ 成功提交 ${count} 筆訂單</div>`;
+      document.getElementById('resultContent').innerHTML = html;
+    }
+
+    // 繼續訂購
+    backBtn.addEventListener('click', function() {
+      filterCategory.value = 'all';
+      updateTypeFilter();
+      filterType.value = 'all';
+      updateProductFilter();
+      filterProduct.value = 'all';
+      quantities = {};
+      scheduleRender(originalItems);
+      inputSection.style.display = 'flex';
+      resultSection.style.display = 'none';
+    });
   </script>
 </body>
 </html>
-
-
