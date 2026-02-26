@@ -1,35 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>訂購系統 (iframe 無 sandbox)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>訂購系統</title>
   <style>
-    /* 極簡樣式，確保 iframe 完全填滿 */
-    * {
+    /* 只保留 iframe 填滿視窗的必要樣式 */
+    body, html {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
       width: 100%;
       height: 100%;
-      background-color: #f5f5f5;
       overflow: hidden;
-    }
-    /* 頂部版本提示 (便於識別) */
-    .version-badge {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #4CAF50;
-      color: white;
-      text-align: center;
-      padding: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 2000;
+      background-color: #f5f5f5;
     }
     iframe {
       width: 100%;
@@ -40,7 +23,7 @@
   </style>
 </head>
 <body>
-  <div class="version-badge">iframe 無 sandbox (強制手機版)</div>
+  <!-- 直接嵌入 Apps Script，不加任何 sandbox，並強制手機版 -->
   <iframe 
     src="https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec?force=mobile"
     loading="lazy"
