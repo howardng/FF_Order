@@ -113,7 +113,7 @@
   </style>
 </head>
 <body>
-  <div class="version-badge">✅ iframe v3.0 (強制手機模式已啟用)</div>
+  <div class="version-badge">🔍 iframe v3.1 (測試：手機使用電腦版樣式)</div>
 
   <div class="loading" id="loading">
     <div class="spinner"></div>
@@ -142,16 +142,15 @@
     iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads");
     iframe.setAttribute("loading", "lazy");
 
-    // 綜合判斷是否為行動裝置：UA 或 寬度 ≤ 768
-    function shouldForceMobile() {
-      const isUaMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const isWidthMobile = window.innerWidth <= 768;
-      return isUaMobile || isWidthMobile;
+    // 判斷是否為行動裝置 (僅使用 UA，不用寬度)
+    function isUaMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
-    // 組合 iframe 的 src，加上 force 參數
+    // 根據測試需求：手機仍傳遞 desktop，電腦傳遞 desktop
+    // 也就是永遠傳遞 force=desktop
     const baseSrc = "https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec";
-    const forceParam = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
+    const forceParam = "?force=desktop";  // 強制桌面版
     iframe.src = baseSrc + forceParam;
 
     // 將 iframe 加入容器
@@ -186,19 +185,8 @@
       loading.style.display = "flex";
       loading.classList.remove("hidden");
       container.classList.remove("show");
-      iframe.src = baseSrc + (shouldForceMobile() ? "?force=mobile" : "?force=desktop");
+      iframe.src = baseSrc + "?force=desktop";
     };
-
-    // 視窗改變時更新
-    window.addEventListener('resize', () => {
-      clearTimeout(window.resizeTimer);
-      window.resizeTimer = setTimeout(() => {
-        const newForce = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
-        if (iframe.src !== baseSrc + newForce) {
-          iframe.src = baseSrc + newForce;
-        }
-      }, 300);
-    });
   </script>
 </body>
 </html>
