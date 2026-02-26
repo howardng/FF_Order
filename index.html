@@ -28,8 +28,8 @@
       background: #ff9800;
       color: white;
       text-align: center;
-      padding: 8px;
-      font-size: 18px;
+      padding: 10px;
+      font-size: 20px;
       font-weight: bold;
       z-index: 2000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -110,29 +110,10 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    /* 除錯面板（雙擊顯示） */
-    #debugPanel {
-      position: fixed;
-      bottom: 10px; left: 10px;
-      background: rgba(0,0,0,0.8);
-      color: #0f0;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      z-index: 3000;
-      display: none;
-      pointer-events: none;
-      max-width: 90%;
-    }
-    body.debug #debugPanel {
-      display: block;
-    }
   </style>
 </head>
 <body>
-  <!-- 明顯的版本標示，可隨時移除或修改 -->
-  <div class="version-badge">iframe v2.0 (雙重判斷 - UA/寬度)</div>
+  <div class="version-badge">✅ iframe v3.0 (強制手機模式已啟用)</div>
 
   <div class="loading" id="loading">
     <div class="spinner"></div>
@@ -148,37 +129,12 @@
 
   <div class="iframe-container" id="iframeContainer"></div>
 
-  <!-- 除錯面板 -->
-  <div id="debugPanel"></div>
-
   <script>
     const loading     = document.getElementById("loading");
     const container   = document.getElementById("iframeContainer");
     const errorBox    = document.getElementById("errorMessage");
     const errorText   = document.getElementById("errorText");
     const retryBtn    = document.getElementById("retryBtn");
-    const debugPanel  = document.getElementById("debugPanel");
-
-    // 輔助更新除錯資訊
-    function updateDebugInfo(forceParam) {
-      const ua = navigator.userAgent;
-      const width = window.innerWidth;
-      const isUaMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
-      const isWidthMobile = width <= 768;
-      debugPanel.innerHTML = `
-        UA: ${ua.substring(0, 60)}...<br>
-        寬度: ${width}px<br>
-        UA 判斷: ${isUaMobile ? '手機' : '電腦'}<br>
-        寬度判斷: ${isWidthMobile ? '手機' : '電腦'}<br>
-        傳遞 force: ${forceParam}<br>
-        (雙擊關閉)
-      `;
-    }
-
-    // 雙擊 body 開啟/關閉除錯面板
-    document.body.addEventListener('dblclick', () => {
-      document.body.classList.toggle('debug');
-    });
 
     // 建立 iframe 元素
     const iframe = document.createElement("iframe");
@@ -198,9 +154,6 @@
     const forceParam = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
     iframe.src = baseSrc + forceParam;
 
-    // 更新除錯資訊
-    updateDebugInfo(forceParam);
-
     // 將 iframe 加入容器
     container.appendChild(iframe);
 
@@ -215,7 +168,6 @@
       showError("無法載入訂購系統，請檢查網路連線");
     };
 
-    // 逾時處理
     const timeout = setTimeout(() => {
       if (!container.classList.contains("show")) {
         showError("載入逾時，請稍後再試");
@@ -234,20 +186,16 @@
       loading.style.display = "flex";
       loading.classList.remove("hidden");
       container.classList.remove("show");
-      // 重新載入 iframe（重新根據當前寬度判斷）
-      const newForce = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
-      iframe.src = baseSrc + newForce;
-      updateDebugInfo(newForce);
+      iframe.src = baseSrc + (shouldForceMobile() ? "?force=mobile" : "?force=desktop");
     };
 
-    // 當視窗大小改變時，重新判斷並更新 iframe 的 src
+    // 視窗改變時更新
     window.addEventListener('resize', () => {
       clearTimeout(window.resizeTimer);
       window.resizeTimer = setTimeout(() => {
         const newForce = shouldForceMobile() ? "?force=mobile" : "?force=desktop";
         if (iframe.src !== baseSrc + newForce) {
           iframe.src = baseSrc + newForce;
-          updateDebugInfo(newForce);
         }
       }, 300);
     });
