@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>訂購系統 (授權輔助版)</title>
+  <title>訂購系統 - 授權輔助</title>
   <style>
-    /* 重置外層樣式，確保 iframe 填滿 */
     * {
       margin: 0;
       padding: 0;
@@ -16,34 +15,72 @@
       height: 100%;
       overflow: hidden;
       background: #f5f5f5;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
 
-    /* 頂部授權輔助按鈕 */
-    #auth-help {
+    /* 頂部提示欄 */
+    #auth-panel {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 10000;
-      background: #4CAF50;
-      color: white;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #fff3cd;
+      border-bottom: 2px solid #ffeeba;
+      padding: 15px;
+      z-index: 2000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #auth-panel.hidden {
+      display: none;
+    }
+    .auth-title {
+      font-weight: bold;
+      color: #856404;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+    .auth-link {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      word-break: break-all;
+      font-size: 14px;
+      color: #0066cc;
+      text-decoration: underline;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px;
       border: none;
-      border-radius: 30px;
-      padding: 12px 20px;
+      border-radius: 8px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      background: #4CAF50;
+      color: white;
       transition: background 0.2s;
     }
-    #auth-help:hover {
-      background: #45a049;
+    .btn.secondary {
+      background: #6c757d;
+    }
+    .btn:hover {
+      opacity: 0.9;
     }
 
-    /* iframe 容器 */
+    /* iframe 容器 (留出頂部空間) */
     .iframe-container {
       width: 100%;
       height: 100%;
-      padding-top: 60px; /* 為按鈕留出空間 */
+      padding-top: 170px; /* 根據頂部面板高度調整 */
     }
     iframe {
       width: 100%;
@@ -54,11 +91,20 @@
   </style>
 </head>
 <body>
-  <button id="auth-help">⚠️ 點我完成授權</button>
+  <div id="auth-panel">
+    <div class="auth-title">⚠️ 需要完成 Google 授權</div>
+    <div>請點擊下方連結，在新頁面中點擊「允許」完成授權，然後返回此頁點擊「已授權，重新載入」。</div>
+    <div class="auth-link" id="auth-link">https://script.google.com/...</div>
+    <div class="button-group">
+      <button class="btn" id="open-link-btn">🔗 在新分頁開啟連結</button>
+      <button class="btn secondary" id="refresh-btn">🔄 已授權，重新載入</button>
+    </div>
+    <div style="font-size:14px; color:#666; margin-top:5px;">若無法自動彈窗，請長按連結複製後手動貼到瀏覽器。</div>
+  </div>
   <div class="iframe-container">
     <iframe 
       id="main-iframe"
-      src="https://script.google.com/macros/s/AKfycbxpHiz1kcTcQOqjUCeW72psGsjNYfkvBpKGT-yQCH1IlKp9p7jCkMSxl3qKcuTQZo0v/exec?force=mobile"
+      src="https://script.google.com/macros/s/AKfycbwrr2k3iwyeh3Ueil7UsGTD-g9nQW24ELsSNuosyafm6jhxCV97ZSRmw6cbf8ckHDgw/exec?force=mobile"
       sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads"
       loading="lazy"
     ></iframe>
@@ -66,24 +112,41 @@
 
   <script>
     const iframe = document.getElementById('main-iframe');
-    const authBtn = document.getElementById('auth-help');
+    const authPanel = document.getElementById('auth-panel');
+    const authLinkDiv = document.getElementById('auth-link');
+    const openBtn = document.getElementById('open-link-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
 
-    // 授權輔助按鈕：在新視窗打開 Apps Script 頁面，讓用戶手動授權
-    authBtn.addEventListener('click', () => {
-      // 獲取 iframe 當前的 src（可能已包含參數）
-      const targetUrl = iframe.src;
-      window.open(targetUrl, '_blank');
-      alert('請在新開啟的頁面中點擊「允許」或「Confirm」完成授權，完成後返回此頁面並點擊「重新整理 iframe」。');
+    // 從 iframe 的 src 取得授權連結（即相同的 URL，不帶 force 也可，但保留）
+    const baseUrl = iframe.src;
+
+    // 顯示連結
+    authLinkDiv.textContent = baseUrl;
+
+    // 在新分頁開啟連結
+    openBtn.addEventListener('click', () => {
+      window.open(baseUrl, '_blank');
     });
 
-    // 可選：提供重新整理 iframe 的按鈕（雙擊螢幕觸發）
-    let lastTap = 0;
-    document.body.addEventListener('dblclick', () => {
-      iframe.src = iframe.src; // 重新載入
-      console.log('iframe 重新整理');
+    // 重新載入 iframe
+    refreshBtn.addEventListener('click', () => {
+      iframe.src = baseUrl; // 重新載入
+      // 可選：暫時隱藏面板，如果載入成功後面板應自動隱藏（但我們不知道何時成功）
+      // 簡單起見，保留面板讓用戶自行決定
     });
 
-    console.log('iframe 容器已載入，如有授權問題請點擊頂部按鈕。');
+    // 可選：定期檢查 iframe 是否已授權（無法直接檢測，但可以監聽載入事件）
+    iframe.addEventListener('load', () => {
+      // 嘗試獲取 iframe 內部文檔，如果跨域可能失敗，但這裡我們可以假設載入成功可能已授權
+      console.log('iframe 載入事件觸發');
+      // 如果載入成功，可以隱藏面板（但可能是授權頁面本身）
+      // 為了簡單，保留面板
+    });
+
+    // 監聽 iframe 內部的消息（如果可能，跨域限制無法直接通信）
+    // 因此我們依靠用戶手動點擊刷新按鈕
+
+    console.log('授權輔助面板已載入。若 iframe 內需要授權，請使用上方按鈕。');
   </script>
 </body>
 </html>
