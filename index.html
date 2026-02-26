@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>訂購系統</title>
+  <title>訂購系統 - 強制桌面版測試</title>
   <style>
     /* 徹底重置所有可能影響 iframe 尺寸的樣式 */
     * {
@@ -25,7 +25,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      background: #ff9800;
+      background: #2196F3;  /* 藍色區分 */
       color: white;
       text-align: center;
       padding: 10px;
@@ -113,7 +113,8 @@
   </style>
 </head>
 <body>
-  <div class="version-badge">🔍 iframe v3.1 (測試：手機使用電腦版樣式)</div>
+  <!-- 明確標示：強制桌面版模式 -->
+  <div class="version-badge">🧪 測試模式：強制桌面版樣式 (忽略手機判斷)</div>
 
   <div class="loading" id="loading">
     <div class="spinner"></div>
@@ -142,16 +143,9 @@
     iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads");
     iframe.setAttribute("loading", "lazy");
 
-    // 判斷是否為行動裝置 (僅使用 UA，不用寬度)
-    function isUaMobile() {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
-
-    // 根據測試需求：手機仍傳遞 desktop，電腦傳遞 desktop
-    // 也就是永遠傳遞 force=desktop
+    // 強制使用桌面版模式：直接傳送 ?force=desktop
     const baseSrc = "https://script.google.com/macros/s/AKfycbwTjkjyQp-hL-owCzgh0quHcVR9jRaQ0WGLa-DN5V9NZXpcKs-FAnk3Y_AGmr1gmLOV/exec";
-    const forceParam = "?force=desktop";  // 強制桌面版
-    iframe.src = baseSrc + forceParam;
+    iframe.src = baseSrc + "?force=desktop";
 
     // 將 iframe 加入容器
     container.appendChild(iframe);
@@ -185,6 +179,7 @@
       loading.style.display = "flex";
       loading.classList.remove("hidden");
       container.classList.remove("show");
+      // 重新載入，保持 force=desktop
       iframe.src = baseSrc + "?force=desktop";
     };
   </script>
